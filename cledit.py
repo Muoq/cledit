@@ -8,9 +8,11 @@ valid_commands = ("show", "add", "remove")
 valid_params = ('s', 'id', 'lb')
 valid_flags = ('s')
 
+OUTPUT_FILE = "cmd-launch-index"
+
 def show():
     try:
-        file = open('cmd-launch-config', 'r')
+        file = open(OUTPUT_FILE, 'r')
         for line in file:
             print(line.replace('\n', ""))
     except FileNotFoundError:
@@ -18,7 +20,7 @@ def show():
 
 def next_number():
     try:
-        file = open('cmd-launch-config', 'r')
+        file = open(OUTPUT_FILE, 'r')
 
         last_num = 0
         counter = 0
@@ -42,12 +44,12 @@ def next_number():
 
 def clean():
     try:
-        file = open('cmd-launch-config', 'r')
+        file = open(OUTPUT_FILE, 'r')
         
         valid_lines = []
         last_number = -1
         for line in file:
-            number = line.split(':')[0].replace(" ", "")
+            number = line.split(':', 2)[0].replace(" ", "")
 
             is_need_fix = False
             try:
@@ -60,10 +62,10 @@ def clean():
                 number = last_number + 1
 
                 config = ""
-                if len(line.split(':')) == 1:
+                if len(line.split(':', 2)) == 1:
                     config = line
                 else:
-                    config = line.split(':')[1]
+                    config = line.split(':', 2)[1]
                     
                 valid_line = "{}: {}".format(number, config)
                 valid_line = valid_line.replace("  ", " ")
@@ -72,7 +74,7 @@ def clean():
             last_number = number
         
         file.close()
-        file = open('cmd-launch-config', 'w')
+        file = open(OUTPUT_FILE, 'w')
 
         for line in valid_lines:
             file.write(line)
@@ -81,21 +83,21 @@ def clean():
         return
 
 def remove_cmd_id(command_id):
-    file = open('cmd-launch-config', 'r')
+    file = open(OUTPUT_FILE, 'r')
     lines_to_keep = []
     is_removal_success = False
     assoc_bin = ""
 
     for line in file:
-        cmd = line.split(':')[1].split('|')[0].replace(" ", "")
+        cmd = line.split(':', 2)[1].split('|')[0].replace(" ", "")
         if cmd != command_id:
             lines_to_keep.append(line)
         else:
-            assoc_bin = line.split(':')[1].split('|')[1].replace(" ", "").replace('\n', "")
+            assoc_bin = line.split(':', 2)[1].split('|')[1].replace(" ", "").replace('\n', "")
             is_removal_success = True
 
     file.close()
-    file = open('cmd-launch-config', 'w')
+    file = open(OUTPUT_FILE, 'w')
 
     for line in lines_to_keep:
         file.write(line)
@@ -106,12 +108,12 @@ def remove_cmd_id(command_id):
         print("\nItem with command identifier \'{}\' does not exist.\n".format(command_id))
 
 def get_associated_launch_bin(command_id):
-    file = open('cmd-launch-config', 'r')
+    file = open(OUTPUT_FILE, 'r')
 
     for line in file:
-        cmd = line.split(':')[1].split('|')[0].replace(" ", "")
+        cmd = line.split(':', 2)[1].split('|')[0].replace(" ", "")
         if cmd == command_id:
-            return line.split(':')[1].split('|')[1].replace(" ", "").replace("\n", "")
+            return line.split(':', 2)[1].split('|')[1].replace(" ", "").replace("\n", "")
     
     return None
 
@@ -119,9 +121,9 @@ def read_config():
     valid_lines = []
 
     try:
-        file = open('cmd-launch-config', 'r')
+        file = open(OUTPUT_FILE, 'r')
         for line in file:
-            line_components = line.split(':')
+            line_components = line.split(':', 2)
 
             if len(line_components) == 1:
                 continue
@@ -134,7 +136,7 @@ def read_config():
             valid_lines.append(line.replace("\n", ""))
 
         file.close()
-        file = open('cmd-launch-config', 'w')
+        file = open(OUTPUT_FILE, 'w')
 
         for line in valid_lines:
             file.write("{}\n".format(line))
@@ -142,7 +144,7 @@ def read_config():
         commands = []
         launch_bins = []
         for line in valid_lines:
-            new_line = line.split(':')[1]
+            new_line = line.split(':', 2)[1]
             new_line = str(new_line).replace(" ", "")
             new_line = str(new_line).replace("\n", "")
 
@@ -195,7 +197,7 @@ def add(id, launch_bin):
                 elif answer == 'y':
                     break
 
-    file = open('cmd-launch-config', 'a')
+    file = open(OUTPUT_FILE, 'a')
     file.write("{}: {} | {}\n".format(next_number(), id, launch_bin))
     file.close()
 
